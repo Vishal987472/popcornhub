@@ -1,0 +1,118 @@
+# ==========================
+# 🚀 General Node.js
+# ==========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ==========================
+# ⚙️ Environment / Secrets
+# ==========================
+.env
+.env.local
+.env.development.local
+.env.production.local
+.env.test.local
+
+# ==========================
+# 📦 Build & Output
+# ==========================
+dist/
+build/
+out/
+.cache/
+.tmp/
+coverage/
+.eslintcache
+.next/
+.nuxt/
+.svelte-kit/
+public/build/
+vite.config.timestamp-*
+*.tsbuildinfo
+
+# ==========================
+# 🧠 Logs
+# ==========================
+logs/
+*.log
+logs/**/*.log
+debug.log
+error.log
+
+# ==========================
+# 💾 Databases / Runtime
+# ==========================
+*.pid
+*.seed
+*.pid.lock
+.dump
+/data
+/uploads/
+uploads/*
+tmp/
+temp/
+
+# ==========================
+# 🧱 IDE / Editor
+# ==========================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*.swn
+*.bak
+*.tmp
+*.orig
+Thumbs.db
+.DS_Store
+
+# ==========================
+# 🧪 Testing
+# ==========================
+/coverage
+/.nyc_output
+/jest-report
+/test-results
+/playwright-report
+
+# ==========================
+# ⚡ Frontend Specific
+# ==========================
+# React / Vite / CRA
+*.env.local
+.env.production
+.env.development
+.env.test
+
+# Cache and build folders
+.cache/
+vite-cache/
+.vite/
+dist/
+build/
+
+# Generated assets
+*.map
+
+# ==========================
+# 🔐 Sensitive Files
+# ==========================
+/certs/
+/private_keys/
+/keys/
+/config/*.json
+/secrets.json
+
+# ==========================
+# 📁 System Files
+# ==========================
+.DS_Store
+Desktop.ini
