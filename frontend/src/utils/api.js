@@ -2,10 +2,11 @@ import axios from "axios";
 
 // ✅ Backend Base URL
 // You can switch between local & deployed server easily
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3001/api";
 
 // ✅ TMDB Base URL (optional if you want to fetch from TMDB)
-const TMDB_BASE_URL = "https://api.themoviedb.org/3";
+const TMDB_BASE_URL="https://api.themoviedb.org/3";
+
 const TMDB_API_KEY = import.meta.env.VITE_TMDB_KEY;
 
 // Create axios instance for backend

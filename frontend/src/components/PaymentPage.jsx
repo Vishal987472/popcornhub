@@ -1,29 +1,112 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button, Modal } from "react-bootstrap";
+import axios from "axios";
 
 const PaymentPage = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const { movie, selectedSeats, totalPrice, booking } = location.state || {};
+
   const [showModal, setShowModal] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState(null);
 
-  // Simulated booking data (replace with props or context later)
-  const bookingSummary = {
-    movie: "Inception",
-    date: "2025-11-05",
-    time: "7:30 PM",
-    seats: ["B2", "B3", "B4"],
-    pricePerSeat: 250,
-  };
+  useEffect(() => {
+    // Redirect if accessed directly (no state passed)
+    if (!movie || !selectedSeats) {
+      navigate("/browse");
+    }
+  }, [movie, selectedSeats, navigate]);
 
-  const totalAmount = bookingSummary.seats.length * bookingSummary.pricePerSeat;
+  // Load Razorpay SDK dynamically
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    document.body.appendChild(script);
+  }, []);
 
-  const handlePayment = (status) => {
-    setPaymentStatus(status);
-    setShowModal(true);
+  const handlePayment = async () => {
+    // 🚧 Temporary simulation if Razorpay key is missing
+    if (!import.meta.env.VITE_RAZORPAY_KEY_ID) {
+      console.warn("⚠️ No Razorpay key found — running in simulation mode");
+      setPaymentStatus("success");
+      setShowModal(true);
+
+      // Optional backend update
+      await axios.post("http://localhost:3001/api/payments/verify", {
+        simulated: true,
+        bookingId: booking?._id,
+      });
+
+      return;
+    }
+
+    try {
+      // 1️⃣ Create order from backend
+      const { data } = await axios.post(
+        "http://localhost:3001/api/payments/create-order",
+        { amount: totalPrice }
+      );
+
+      // 2️⃣ Configure Razorpay options
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: data.amount,
+        currency: data.currency,
+        name: "PopcornHub",
+        description: `Booking for ${movie.title}`,
+        order_id: data.orderId,
+        handler: async function (response) {
+          setPaymentStatus("success");
+          setShowModal(true);
+          console.log("✅ Payment Success:", response);
+
+          // Update backend booking payment status
+          await axios.put(
+            `http://localhost:3001/api/bookings/${booking._id}/status`,
+            {
+              paymentStatus: "Paid",
+              transactionId: response.razorpay_payment_id,
+            }
+          );
+        },
+        prefill: {
+          name: "Vishal",
+          email: "vishal@example.com",
+          contact: "9999999999",
+        },
+        theme: {
+          color: "#ff4d6d",
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+
+      rzp.on("payment.failed", async function (response) {
+        setPaymentStatus("failure");
+        setShowModal(true);
+        console.error("❌ Payment Failed:", response);
+
+        await axios.put(
+          `http://localhost:3001/api/bookings/${booking._id}/status`,
+          {
+            paymentStatus: "Failed",
+          }
+        );
+      });
+    } catch (error) {
+      console.error("Payment Error:", error);
+      setPaymentStatus("failure");
+      setShowModal(true);
+    }
   };
 
   const closeModal = () => {
     setShowModal(false);
-    setPaymentStatus(null);
+    navigate("/");
   };
 
   return (
@@ -53,34 +136,21 @@ const PaymentPage = () => {
           💳 Payment Summary
         </h3>
 
-        {/* Booking Info */}
-        <div className="mb-4">
-          <p>
-            <strong>Movie:</strong> {bookingSummary.movie}
-          </p>
-          <p>
-            <strong>Date:</strong> {bookingSummary.date}
-          </p>
-          <p>
-            <strong>Showtime:</strong> {bookingSummary.time}
-          </p>
-          <p>
-            <strong>Seats:</strong> {bookingSummary.seats.join(", ")}
-          </p>
-          <p>
-            <strong>Price per Seat:</strong> ₹{bookingSummary.pricePerSeat}
-          </p>
+        <div className="mb-4 text-light">
+          <p><strong>Movie:</strong> {movie?.title}</p>
+          <p><strong>Date:</strong> {new Date().toLocaleDateString()}</p>
+          <p><strong>Seats:</strong> {selectedSeats?.join(", ")}</p>
+          <p><strong>Price per Seat:</strong> ₹250</p>
           <hr style={{ borderColor: "var(--accent-yellow)" }} />
           <h5 className="text-end">
             Total:{" "}
             <span style={{ color: "var(--accent-yellow)" }}>
-              ₹{totalAmount}
+              ₹{totalPrice?.toLocaleString()}
             </span>
           </h5>
         </div>
 
-        {/* Buttons */}
-        <div className="d-flex justify-content-center gap-3">
+        <div className="d-flex justify-content-center">
           <Button
             variant="success"
             className="fw-semibold px-4"
@@ -89,25 +159,14 @@ const PaymentPage = () => {
               border: "none",
               color: "#000",
             }}
-            onClick={() => handlePayment("success")}
+            onClick={handlePayment}
           >
-            Proceed to Pay ✅
-          </Button>
-          <Button
-            variant="danger"
-            className="fw-semibold px-4"
-            style={{
-              backgroundColor: "var(--accent-red)",
-              border: "none",
-            }}
-            onClick={() => handlePayment("failure")}
-          >
-            Simulate Fail ❌
+            Pay with Razorpay 🚀
           </Button>
         </div>
       </div>
 
-      {/* Payment Result Modal */}
+      {/* Modal */}
       <Modal show={showModal} onHide={closeModal} centered>
         <Modal.Header closeButton>
           <Modal.Title>
@@ -121,20 +180,18 @@ const PaymentPage = () => {
             <>
               <p>
                 Your payment of{" "}
-                <strong>₹{totalAmount}</strong> for{" "}
-                <b>{bookingSummary.movie}</b> was successful!
+                <strong>₹{totalPrice?.toLocaleString()}</strong> for{" "}
+                <b>{movie?.title}</b> was successful!
               </p>
               <p className="text-muted mb-0">
                 A confirmation email will be sent shortly.
               </p>
             </>
           ) : (
-            <>
-              <p>
-                Unfortunately, the payment could not be processed. Please try
-                again later.
-              </p>
-            </>
+            <p>
+              Unfortunately, the payment could not be processed. Please try
+              again later.
+            </p>
           )}
         </Modal.Body>
         <Modal.Footer>

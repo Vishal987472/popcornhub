@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const BookingPage = () => {
   const location = useLocation();
@@ -34,9 +35,29 @@ const BookingPage = () => {
     );
   }
 
-  // Seat Selection Logic
   const totalSeats = 30;
   const [selectedSeats, setSelectedSeats] = useState([]);
+  const [bookedSeats, setBookedSeats] = useState([]); // dynamically fetched
+  const [loading, setLoading] = useState(false);
+
+  // ✅ Fetch already booked seats from backend
+  useEffect(() => {
+    const fetchBookedSeats = async () => {
+      try {
+        const res = await axios.get("http://localhost:3001/api/bookings");
+        const movieBookings = res.data.filter(
+          (b) => b.movieId._id === (movie._id || movie.id)
+        );
+
+        const allBooked = movieBookings.flatMap((b) => b.seats.map(Number));
+        setBookedSeats(allBooked);
+      } catch (error) {
+        console.error("❌ Error fetching booked seats:", error.message);
+      }
+    };
+
+    fetchBookedSeats();
+  }, [movie]);
 
   const handleSeatClick = (seatNum) => {
     if (selectedSeats.includes(seatNum)) {
@@ -46,8 +67,42 @@ const BookingPage = () => {
     }
   };
 
-  const ticketPrice = 250; // ₹ per seat
+  const ticketPrice = 250;
   const totalPrice = selectedSeats.length * ticketPrice;
+
+  // ✅ Create booking in backend
+  const handleBooking = async () => {
+    if (selectedSeats.length === 0) return;
+    setLoading(true);
+
+    try {
+      const bookingData = {
+        movieId: movie._id || movie.id,
+        userName: "Guest",
+        seats: selectedSeats.map(String),
+        totalAmount: totalPrice,
+      };
+
+      const res = await axios.post("http://localhost:3001/api/bookings", bookingData);
+
+      if (res.status === 201) {
+        alert("🎉 Booking created successfully!");
+        navigate("/payment", {
+          state: {
+            movie,
+            selectedSeats,
+            totalPrice,
+            booking: res.data.booking,
+          },
+        });
+      }
+    } catch (err) {
+      console.error("❌ Booking failed:", err.response?.data || err.message);
+      alert(err.response?.data?.message || "Booking failed. Try again!");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div
@@ -105,7 +160,7 @@ const BookingPage = () => {
                 {Array.from({ length: totalSeats }).map((_, i) => {
                   const seatNum = i + 1;
                   const isSelected = selectedSeats.includes(seatNum);
-                  const isBooked = i % 11 === 0; // random booked pattern
+                  const isBooked = bookedSeats.includes(seatNum);
 
                   return (
                     <button
@@ -159,14 +214,10 @@ const BookingPage = () => {
                       selectedSeats.length > 0 ? "pointer" : "not-allowed",
                     transition: "all 0.3s ease",
                   }}
-                  disabled={selectedSeats.length === 0}
-                  onClick={() =>
-                    navigate("/payment", {
-                      state: { movie, selectedSeats, totalPrice },
-                    })
-                  }
+                  disabled={selectedSeats.length === 0 || loading}
+                  onClick={handleBooking}
                 >
-                  💳 Proceed to Payment
+                  {loading ? "⏳ Booking..." : "💳 Proceed to Payment"}
                 </button>
               </div>
             </div>

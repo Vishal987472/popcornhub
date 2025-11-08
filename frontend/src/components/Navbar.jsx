@@ -10,7 +10,7 @@ const Navbar = () => {
         {/* Logo and Brand */}
         <Link className="navbar-brand d-flex align-items-center" to="/">
           <img
-            src="/logo192.png"
+            src="/assets/logo.png"
             alt="PopcornHub Logo"
             width="40"
             height="40"

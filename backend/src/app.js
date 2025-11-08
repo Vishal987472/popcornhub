@@ -7,12 +7,14 @@ import movieRoutes from "./routes/movieRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
+import testRoute from "./routes/testRoute.js";
+import userRoutes from "./routes/userRoutes.js";
 
 const app = express();
 
 // --- Middlewares ---
 app.use(express.json());
-app.use(cors());
+app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(morgan("dev"));
 
 // --- Rate Limiter ---
@@ -24,6 +26,8 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // --- Routes ---
+app.use("/api/users", userRoutes); // Placeholder for user routes
+app.use("/api/test", testRoute);
 app.use("/api/movies", movieRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/payments", paymentRoutes);

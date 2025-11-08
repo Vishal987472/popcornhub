@@ -13,17 +13,24 @@ export const createBooking = async (req, res) => {
       return res.status(400).json({ message: "Movie and seats are required." });
     }
 
-    // Fetch movie details
-    const movie = await Movie.findById(movieId);
-    if (!movie) {
-      return res.status(404).json({ message: "Movie not found." });
+    // Skip DB lookup if using static movies
+    let movie = null;
+    try {
+      movie = await Movie.findById(movieId);
+    } catch (err) {
+      console.warn("⚠️ Static movie used, skipping MongoDB lookup.");
+    }
+
+    if (!movie && typeof movieId !== "string") {
+      // allow static demo booking
+      movie = { _id: movieId, title: "Static Demo Movie" };
     }
 
     // Seat locking simulation
     const bookedSeats = await Booking.find({ movieId }).select("seats -_id");
-    const alreadyBooked = bookedSeats.flatMap(b => b.seats);
+    const alreadyBooked = bookedSeats.flatMap((b) => b.seats);
 
-    const overlap = seats.filter(seat => alreadyBooked.includes(seat));
+    const overlap = seats.filter((seat) => alreadyBooked.includes(seat));
     if (overlap.length > 0) {
       return res.status(400).json({
         message: `Seats already booked: ${overlap.join(", ")}`,
@@ -56,7 +63,10 @@ export const createBooking = async (req, res) => {
  */
 export const getBookings = async (req, res) => {
   try {
-    const bookings = await Booking.find().populate("movieId", "title genre duration");
+    const bookings = await Booking.find().populate(
+      "movieId",
+      "title genre duration"
+    );
     res.status(200).json(bookings);
   } catch (error) {
     console.error("❌ Error fetching bookings:", error.message);

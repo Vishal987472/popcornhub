@@ -16,27 +16,38 @@ export const createOrder = async (req, res) => {
     const { amount, currency = "INR", receipt } = req.body;
 
     const options = {
-      amount: amount * 100, // amount in paise
+      amount: amount * 100,
       currency,
       receipt: receipt || `rcpt_${Date.now()}`,
     };
 
     const order = await razorpay.orders.create(options);
+
     res.status(200).json({
       success: true,
-      order,
+      orderId: order.id,
+      amount: order.amount,
+      currency: order.currency,
     });
   } catch (error) {
     console.error("Razorpay Order Error:", error);
-    res.status(500).json({ success: false, message: "Payment initiation failed" });
+    res.status(500).json({
+      success: false,
+      message: "Payment initiation failed",
+    });
   }
 };
+
 
 // 🔒 Verify payment (after client payment success)
 export const verifyPayment = async (req, res) => {
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    // 🧪 Simulation Mode (no Razorpay keys yet)
+    if (req.body.simulated) {
+      return res.status(200).json({ success: true, message: "Simulated payment success" });
+    }
 
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
     const sign = razorpay_order_id + "|" + razorpay_payment_id;
     const expectedSign = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
@@ -53,3 +64,4 @@ export const verifyPayment = async (req, res) => {
     res.status(500).json({ success: false, message: "Payment verification failed" });
   }
 };
+
