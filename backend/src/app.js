@@ -14,7 +14,19 @@ const app = express();
 
 // --- Middlewares ---
 app.use(express.json());
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+
+// ✅ Allow both local and deployed frontends
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",              // local dev
+      "https://popcornhub.netlify.app",     // deployed frontend on Netlify
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  })
+);
+
 app.use(morgan("dev"));
 
 // --- Rate Limiter ---

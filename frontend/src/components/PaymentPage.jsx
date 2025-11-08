@@ -6,14 +6,15 @@ import axios from "axios";
 const PaymentPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-
   const { movie, selectedSeats, totalPrice, booking } = location.state || {};
 
   const [showModal, setShowModal] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState(null);
 
+  // ✅ Use environment variable for API base URL
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
   useEffect(() => {
-    // Redirect if accessed directly (no state passed)
     if (!movie || !selectedSeats) {
       navigate("/browse");
     }
@@ -28,14 +29,13 @@ const PaymentPage = () => {
   }, []);
 
   const handlePayment = async () => {
-    // 🚧 Temporary simulation if Razorpay key is missing
+    // 🚧 Simulation if Razorpay key missing
     if (!import.meta.env.VITE_RAZORPAY_KEY_ID) {
       console.warn("⚠️ No Razorpay key found — running in simulation mode");
       setPaymentStatus("success");
       setShowModal(true);
 
-      // Optional backend update
-      await axios.post("http://localhost:3001/api/payments/verify", {
+      await axios.post(`${API_BASE_URL}/payments/verify`, {
         simulated: true,
         bookingId: booking?._id,
       });
@@ -46,7 +46,7 @@ const PaymentPage = () => {
     try {
       // 1️⃣ Create order from backend
       const { data } = await axios.post(
-        "http://localhost:3001/api/payments/create-order",
+        `${API_BASE_URL}/payments/create-order`,
         { amount: totalPrice }
       );
 
@@ -63,9 +63,9 @@ const PaymentPage = () => {
           setShowModal(true);
           console.log("✅ Payment Success:", response);
 
-          // Update backend booking payment status
+          // Update booking payment status
           await axios.put(
-            `http://localhost:3001/api/bookings/${booking._id}/status`,
+            `${API_BASE_URL}/bookings/${booking._id}/status`,
             {
               paymentStatus: "Paid",
               transactionId: response.razorpay_payment_id,
@@ -91,7 +91,7 @@ const PaymentPage = () => {
         console.error("❌ Payment Failed:", response);
 
         await axios.put(
-          `http://localhost:3001/api/bookings/${booking._id}/status`,
+          `${API_BASE_URL}/bookings/${booking._id}/status`,
           {
             paymentStatus: "Failed",
           }

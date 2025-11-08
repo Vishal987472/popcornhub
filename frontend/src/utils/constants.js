@@ -3,7 +3,7 @@
 export const APP_NAME = "PopcornHub";
 
 // Base URLs
-export const BACKEND_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+export const BACKEND_URL = import.meta.env.VITE_API_BASE_URL;
 export const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
 
 // 🎨 THEME COLORS (Dark + Red + Gold)

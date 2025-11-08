@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../index.css";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 
 const Home = () => {
   const [apiStatus, setApiStatus] = useState("Connecting...");
@@ -10,7 +12,7 @@ const Home = () => {
   useEffect(() => {
     const fetchBackendStatus = async () => {
       try {
-        const response = await axios.get("http://localhost:3001/api/test");
+        const response = await axios.get(`${API_BASE_URL}/test`);
         setApiStatus(response.data.message);
       } catch (error) {
         console.error("Backend not reachable:", error);

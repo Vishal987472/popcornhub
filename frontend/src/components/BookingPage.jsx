@@ -8,7 +8,6 @@ const BookingPage = () => {
   const { id } = useParams();
   const movie = location.state;
 
-  // Handle direct navbar access
   if (!movie) {
     return (
       <div
@@ -37,19 +36,23 @@ const BookingPage = () => {
 
   const totalSeats = 30;
   const [selectedSeats, setSelectedSeats] = useState([]);
-  const [bookedSeats, setBookedSeats] = useState([]); // dynamically fetched
+  const [bookedSeats, setBookedSeats] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Fetch already booked seats from backend
+  // ✅ Use environment variable for API URL
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+  // ✅ Fetch already booked seats
   useEffect(() => {
     const fetchBookedSeats = async () => {
       try {
-        const res = await axios.get("http://localhost:3001/api/bookings");
+        const res = await axios.get(`${API_BASE_URL}/bookings`);
         const movieBookings = res.data.filter(
           (b) => b.movieId._id === (movie._id || movie.id)
         );
-
-        const allBooked = movieBookings.flatMap((b) => b.seats.map(Number));
+        const allBooked = movieBookings.flatMap((b) =>
+          b.seats.map(Number)
+        );
         setBookedSeats(allBooked);
       } catch (error) {
         console.error("❌ Error fetching booked seats:", error.message);
@@ -57,20 +60,20 @@ const BookingPage = () => {
     };
 
     fetchBookedSeats();
-  }, [movie]);
+  }, [movie, API_BASE_URL]);
 
   const handleSeatClick = (seatNum) => {
-    if (selectedSeats.includes(seatNum)) {
-      setSelectedSeats(selectedSeats.filter((s) => s !== seatNum));
-    } else {
-      setSelectedSeats([...selectedSeats, seatNum]);
-    }
+    setSelectedSeats((prev) =>
+      prev.includes(seatNum)
+        ? prev.filter((s) => s !== seatNum)
+        : [...prev, seatNum]
+    );
   };
 
   const ticketPrice = 250;
   const totalPrice = selectedSeats.length * ticketPrice;
 
-  // ✅ Create booking in backend
+  // ✅ Create booking
   const handleBooking = async () => {
     if (selectedSeats.length === 0) return;
     setLoading(true);
@@ -83,17 +86,12 @@ const BookingPage = () => {
         totalAmount: totalPrice,
       };
 
-      const res = await axios.post("http://localhost:3001/api/bookings", bookingData);
+      const res = await axios.post(`${API_BASE_URL}/bookings`, bookingData);
 
       if (res.status === 201) {
         alert("🎉 Booking created successfully!");
         navigate("/payment", {
-          state: {
-            movie,
-            selectedSeats,
-            totalPrice,
-            booking: res.data.booking,
-          },
+          state: { movie, selectedSeats, totalPrice, booking: res.data.booking },
         });
       }
     } catch (err) {
@@ -124,7 +122,6 @@ const BookingPage = () => {
         </h2>
 
         <div className="row align-items-center">
-          {/* Poster Section */}
           <div className="col-md-4 text-center mb-4 mb-md-0">
             <img
               src={movie.poster}
@@ -137,7 +134,6 @@ const BookingPage = () => {
             />
           </div>
 
-          {/* Seat Booking Section */}
           <div className="col-md-8">
             <div
               className="p-4 rounded"
