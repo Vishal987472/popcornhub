@@ -20,7 +20,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",              // local dev
-      "https://popcornhub.netlify.app",     // deployed frontend on Netlify
+      "https://popcornhub-v.netlify.app",      // (optional old domain)
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
