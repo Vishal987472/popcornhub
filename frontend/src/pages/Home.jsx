@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../index.css";
+import logo from "../assets/logo.png";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 
@@ -33,7 +34,7 @@ const Home = () => {
       }}
     >
       <img
-        src="./assets/logo.png"
+        src={logo}
         alt="PopcornHub Logo"
         style={{ width: "150px", marginBottom: "20px" }}
       />

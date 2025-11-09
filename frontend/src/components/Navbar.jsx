@@ -2,6 +2,7 @@ import React from "react";
 import { Link, NavLink } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../index.css";
+import logo from "../assets/logo.png";
 
 const Navbar = () => {
   return (
@@ -10,7 +11,7 @@ const Navbar = () => {
         {/* Logo and Brand */}
         <Link className="navbar-brand d-flex align-items-center" to="/">
           <img
-            src="/assets/logo.png"
+            src={logo}
             alt="PopcornHub Logo"
             width="40"
             height="40"
