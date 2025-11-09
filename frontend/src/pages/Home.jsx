@@ -13,7 +13,7 @@ const Home = () => {
   useEffect(() => {
     const fetchBackendStatus = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/test`);
+        const response = await axios.get(`${API_BASE_URL}/test`);
         setApiStatus(response.data.message);
       } catch (error) {
         console.error("Backend not reachable:", error);
